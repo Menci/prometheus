@@ -570,7 +570,15 @@ func (h *Handler) Reload() <-chan chan error {
 func (h *Handler) Listener() (net.Listener, error) {
 	level.Info(h.logger).Log("msg", "Start listening for connections", "address", h.options.ListenAddress)
 
-	listener, err := net.Listen("tcp", h.options.ListenAddress)
+	var listener net.Listener
+	var err error
+
+	if strings.HasPrefix(h.options.ListenAddress, "unix:") {
+		socketPath := strings.TrimPrefix(h.options.ListenAddress, "unix:")
+		listener, err = net.Listen("unix", socketPath)
+	} else {
+		listener, err = net.Listen("tcp", h.options.ListenAddress)
+	}
 	if err != nil {
 		return listener, err
 	}
